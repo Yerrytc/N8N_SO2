@@ -1,0 +1,19 @@
+OK    C1 el Compose es válido (docker compose config) — 5 servicios en producción; 6 con el perfil dev
+OK    C2 las imágenes llevan etiqueta fija (sin latest) — reteque/api:0.1.0, caddy:2.11.7, n8nio/n8n:2.45.7, reteque/api:0.1.0, postgres:17.11
+OK    C3 postgres_n8n, api, outbox-worker no publican puertos — puertos publicados: {'caddy': [('0.0.0.0', '80', 80), ('0.0.0.0', '443', 443)], 'n8n': [('10.99.0.1', '5678', 5678)]}
+OK    C4 Internet solo ve 80 y 443 (caddy) 
+OK    C5 el editor de n8n escucha solo en la IP de wg0 — [('10.99.0.1', '5678', 5678)]
+OK    C6 todos los servicios: cap_drop ALL y no-new-privileges 
+OK    C7 n8n y api se ejecutan sin root (1000:1000) 
+OK    C8 suma de límites de memoria = 2 784 MB (informe, Tabla 10) — 2784 MB (< 4 GB de la VPS)
+OK    C9 todos tienen reinicio automático 
+OK    C10 subredes del informe (172.30.10/20/30.0/24) 
+OK    C11 net_data es interna (sin salida a Internet) 
+OK    C12 cada IP fija pertenece a su subred 
+OK    C13 postgres_n8n solo está en la red interna 
+OK    C14 caddy no toca la red de datos 
+OK    C15 el perfil dev no existe en producción 
+OK    C16 servicios con healthcheck (api, caddy, n8n, postgres_n8n) 
+OK    C17 .env.example no contiene secretos reales (todo REDACTED) 
+
+Resultado: 17/17 comprobaciones superadas

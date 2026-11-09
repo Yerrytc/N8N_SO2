@@ -1,0 +1,270 @@
+{
+  "name": "WF-01_message_router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "message-received",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "00000001-0000-4000-8000-000000000000",
+      "name": "Evento message.received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CRED_WEBHOOK_SECRET",
+          "name": "Secreto compartido del despachador"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "t1",
+                    "leftValue": "={{ $json.body.kind }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "t2",
+                    "leftValue": "={{ $json.body.kind }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "imagen"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "00000002-0000-4000-8000-000000000000",
+      "name": "Clasificar tipo de mensaje",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.API_BASE_URL }}/internal/conversations/{{ $json.body.customer_id }}/context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetween": 2000
+          }
+        }
+      },
+      "id": "00000003-0000-4000-8000-000000000000",
+      "name": "Contexto de la conversación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        -100
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CRED_INTERNAL_API",
+          "name": "API interna RETEQUE (x-internal-secret)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Interpretación determinista previa a la IA (informe, sec. 5.5). Devuelve ítems con SKU candidato.\nconst t = $('Evento message.received').item.json.body.text.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');\nconst alias = [['hamburguesa','BURG-CLS'],['gaseosa','GAS-15'],['papas','PAP-FRI']];\nconst items = alias.filter(([a]) => t.includes(a)).map(([,sku]) => ({ sku, quantity: 1 }));\nreturn [{ json: { items, wantsHuman: /asesor|persona|humano/.test(t) } }];"
+      },
+      "id": "00000004-0000-4000-8000-000000000000",
+      "name": "Interpretar texto (reglas y alias)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.API_BASE_URL }}/internal/orders/draft/items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetween": 2000
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ customer_id: $('Evento message.received').item.json.body.customer_id, items: $json.items }) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ 'draft-' + $('Evento message.received').item.json.body.event_id }}"
+            }
+          ]
+        }
+      },
+      "id": "00000005-0000-4000-8000-000000000000",
+      "name": "Agregar al borrador (idempotente)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        -100
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CRED_INTERNAL_API",
+          "name": "API interna RETEQUE (x-internal-secret)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "00000006-0000-4000-8000-000000000000",
+      "name": "Imagen: la gestiona la pasarela",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        520,
+        100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "00000007-0000-4000-8000-000000000000",
+      "name": "Otros tipos de mensaje",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        520,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Evento message.received": {
+      "main": [
+        [
+          {
+            "node": "Clasificar tipo de mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar tipo de mensaje": {
+      "main": [
+        [
+          {
+            "node": "Contexto de la conversación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Imagen: la gestiona la pasarela",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Otros tipos de mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto de la conversación": {
+      "main": [
+        [
+          {
+            "node": "Interpretar texto (reglas y alias)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar texto (reglas y alias)": {
+      "main": [
+        [
+          {
+            "node": "Agregar al borrador (idempotente)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": false,
+    "errorWorkflow": "WF-08_errors_and_retries"
+  },
+  "active": false,
+  "tags": [
+    {
+      "name": "reteque"
+    },
+    {
+      "name": "prototipo"
+    }
+  ]
+}

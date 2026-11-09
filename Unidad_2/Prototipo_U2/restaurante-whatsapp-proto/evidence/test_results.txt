@@ -1,0 +1,17 @@
+# 2026-11-09T10:56:01-05:00 | v22.23.4 | Linux 6.18.44-fc-v310
+ok 1 - PT-11 verificación del webhook: reto GET y firma HMAC
+ok 2 - PT-12 idempotencia: mismo wamid dos veces
+ok 3 - Flujo de negocio: cotización con total calculado en el servidor (T01, T03)
+ok 4 - T02/T15: producto inexistente o agotado no se inventa ni se acepta
+ok 5 - T04: delivery sin dirección pide la dirección y no inventa tarifa
+ok 6 - T05: la confirmación crea una sola orden aunque llegue dos veces
+ok 7 - PT-15 regla de pago: comprobante recibido ≠ pago confirmado; roles y auditoría
+ok 8 - T07/T08/T09: comprobante repetido, sin pedido y reutilizado
+ok 9 - T12: solicitud de atención humana
+ok 10 - PT-23 resiliencia del outbox: n8n caído y recuperación con backoff
+ok 11 - Atomicidad: si falla la transacción no queda mensaje ni evento a medias
+ok 12 - Seguridad de la API interna: sin secreto compartido no hay acceso
+ok 13 - Máquina de estados: transiciones no permitidas se rechazan
+# tests 13
+# pass 13
+# fail 0

@@ -1,0 +1,26 @@
+
+== 1. Cliente escribe
+CLIENTE   | Hola, quiero dos hamburguesas para recojo
+BOT       | Tu pedido: 2 x Hamburguesa clásica (S/ 32.00). Subtotal S/ 32.00. Delivery S/ 0.00. Total S/ 32.00. ¿Confirmamos el pedido?
+estado pedido: QUOTED
+
+== 2. Cliente confirma
+CLIENTE   | Sí, confirmo el pedido
+BOT       | Pedido PED-1001 confirmado. Total S/ 32.00. Transfiere ese monto, indica el código PED-1001 y envía la imagen del comprobante.
+estado pedido: AWAITING_PAYMENT | código: PED-1001
+
+== 3. Cliente envía la imagen del comprobante
+CLIENTE   | [imagen del comprobante]
+BOT       | Recibimos tu comprobante del pedido PED-1001. Estamos verificando el pago; te confirmaremos cuando finalice la revisión.
+estado pedido: UNDER_REVIEW | estado del pago: PENDING (la imagen NO verifica el pago)
+alerta en el panel (GET /api/orders?status=UNDER_REVIEW): [ 'PED-1001 UNDER_REVIEW total 32' ]
+
+== 4. Cajero verifica el abono y aprueba -> HTTP 200
+BOT       | Pago verificado. Tu pedido PED-1001 está confirmado y pasa a cocina.
+estado pedido: CONFIRMED | estado del pago: VERIFIED
+
+== Auditoría
+service:n8n    order.status   {"status":"DRAFT"} -> {"status":"QUOTED"}
+service:n8n    order.status   {"status":"QUOTED"} -> {"status":"AWAITING_PAYMENT"}
+system:gateway order.status   {"status":"AWAITING_PAYMENT"} -> {"status":"UNDER_REVIEW","evidence":"4ac1ac26-af7c-4202-87b0-4ca2eb65d6c6"}
+u-caja         order.status   {"status":"UNDER_REVIEW"} -> {"status":"CONFIRMED","payment":"VERIFIED","reference":"OP-7788","override":false}

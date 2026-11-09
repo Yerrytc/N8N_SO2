@@ -1,0 +1,5 @@
+Entorno: Node v22.23.4, 2 CPU, 8023 MB RAM (entorno de desarrollo, no la VPS)
+PT-16 webhook: 200/200 respondidos 200 | p50 14.6 ms | p95 21.6 ms | p99 40.0 ms | max 83.8 ms
+      mensajes persistidos: 200 | eventos en outbox: 200
+PT-18 (ensayo parcial): 50 pedidos, 50 CONFIRMED, 50 códigos únicos, 50/50 clientes con las 4 respuestas | ciclo medio 32.6 ms | total 1632 ms
+      eventos sin entregar: 0 | eventos en cola de error: 0 | duplicados de pago: 0

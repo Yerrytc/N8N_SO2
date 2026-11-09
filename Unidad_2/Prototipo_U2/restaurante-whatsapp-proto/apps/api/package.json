@@ -1,0 +1,7 @@
+{
+  "name": "reteque-api-proto",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prueba de concepto de la capa de negocio de RETEQUE-OS (sin dependencias externas)",
+  "scripts": { "test": "node --test test/pt.test.js" }
+}

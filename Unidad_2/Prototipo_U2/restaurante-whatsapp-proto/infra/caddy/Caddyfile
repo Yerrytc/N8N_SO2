@@ -1,0 +1,14 @@
+# Proxy inverso con TLS automático. Solo se publica la API del webhook; el editor de n8n NO se expone.
+api.{$DOMINIO} {
+  encode zstd gzip
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    -Server
+  }
+  @publico path /webhooks/whatsapp /health
+  handle @publico {
+    reverse_proxy api:3000
+  }
+  respond 404   # /internal/* y /api/* no son públicas en esta versión del diseño
+}

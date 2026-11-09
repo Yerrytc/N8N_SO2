@@ -1,0 +1,23 @@
+## WF-01_message_router.json (7 nodos)
+OK    JSON válido con nodos y conexiones 
+OK    nombres e IDs de nodo únicos 
+OK    toda conexión apunta a un nodo existente 
+OK    un disparador webhook con autenticación por cabecera 
+OK    todos los nodos son alcanzables desde el disparador — 7/7
+OK    sin secretos incrustados (solo referencias a credenciales) 
+OK    las llamadas HTTP usan credencial y reintentos (máx. 3) — 2 llamadas
+OK    todo POST envía Idempotency-Key — 1 POST
+OK    controla errores con un workflow dedicado (WF-08) 
+## WF-05_payment_evidence.json (5 nodos)
+OK    JSON válido con nodos y conexiones 
+OK    nombres e IDs de nodo únicos 
+OK    toda conexión apunta a un nodo existente 
+OK    un disparador webhook con autenticación por cabecera 
+OK    todos los nodos son alcanzables desde el disparador — 5/5
+OK    sin secretos incrustados (solo referencias a credenciales) 
+OK    las llamadas HTTP usan credencial y reintentos (máx. 3) — 2 llamadas
+OK    todo POST envía Idempotency-Key — 1 POST
+OK    controla errores con un workflow dedicado (WF-08) 
+OK    el acuse nunca dice que el pago está aprobado/pagado 
+
+Resultado: todas las comprobaciones superadas

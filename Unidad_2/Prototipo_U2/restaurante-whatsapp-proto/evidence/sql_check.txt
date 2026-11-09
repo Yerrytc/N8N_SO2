@@ -1,0 +1,43 @@
+# postgres (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)
+## Aplicación del esquema (database/001_schema.sql)
+esquema aplicado sin errores: 10 tablas
+## Pruebas S1 a S10
+S1 idempotencia: el mismo wamid dos veces (esperado: segundo INSERT rechazado por UNIQUE)
+ERROR:  duplicate key value violates unique constraint "messages_provider_message_id_key"
+DETAIL:  Key (provider_message_id)=(wamid.A) already exists.
+S1 filas con wamid.A = 1
+S2 precio negativo (esperado: rechazo por CHECK)
+ERROR:  new row for relation "products" violates check constraint "products_price_cents_check"
+DETAIL:  Failing row contains (49f7a2fe-930b-4434-8aeb-7af38ceda8ec, X-NEG, Negativo, -5, PEN, t, t, 2026-11-09 10:56:05.908654-05).
+S3 estado inválido de pedido (esperado: rechazo por CHECK)
+ERROR:  new row for relation "orders" violates check constraint "orders_status_check"
+DETAIL:  Failing row contains (00000000-0000-0000-0000-0000000000b1, PED-1001, 00000000-0000-0000-0000-0000000000c1, PAGADO, 3200, 1, 2026-11-09 10:56:05.904437-05, 2026-11-09 10:56:05.904437-05).
+S4 línea de pedido con total incoherente (esperado: rechazo por CHECK)
+ERROR:  new row for relation "order_items" violates check constraint "order_items_check"
+DETAIL:  Failing row contains (95cf9f01-2ff9-40b0-952b-2788ddde3665, 00000000-0000-0000-0000-0000000000b1, 00000000-0000-0000-0000-0000000000a1, Hamburguesa clásica, 2, 1600, 9999).
+S5 pago VERIFIED sin responsable (esperado: rechazo por CHECK)
+ERROR:  new row for relation "payments" violates check constraint "payments_check"
+DETAIL:  Failing row contains (00000000-0000-0000-0000-0000000000d1, 00000000-0000-0000-0000-0000000000b1, TRANSFER, 3200, VERIFIED, null, null).
+S5 estado final del pago = VERIFIED
+S6 clave foránea: línea para un pedido inexistente (esperado: rechazo)
+ERROR:  insert or update on table "order_items" violates foreign key constraint "order_items_order_id_fkey"
+DETAIL:  Key (order_id)=(d41972be-8d88-4821-9633-68e37dbc3715) is not present in table "orders".
+S7 hash de comprobante mal formado (esperado: rechazo por CHECK)
+ERROR:  new row for relation "attachments" violates check constraint "attachments_sha256_check"
+DETAIL:  Failing row contains (fcdcc647-5406-4858-bb1e-c4bfaf211062, proofs/mal, null, image/png, 10, abc, 2026-11-09 10:56:05.912979-05).
+S8 atomicidad mensaje + outbox: ROLLBACK no deja filas a medias
+S8 mensajes wamid.B = 0, eventos outbox = 0
+S8 tras COMMIT: mensajes wamid.C = 1, eventos outbox = 1
+S9 consulta de reclamo del outbox con FOR UPDATE SKIP LOCKED (sintaxis y ejecución; la concurrencia real se prueba en la III Unidad)
+S9 pendientes = 2
+S9 consumidor A reclama 1
+S10 auditoría de solo inserción (esperado: UPDATE y DELETE rechazados)
+ERROR:  audit_log es de solo inserción
+CONTEXT:  PL/pgSQL function audit_immutable() line 1 at RAISE
+ERROR:  audit_log es de solo inserción
+CONTEXT:  PL/pgSQL function audit_immutable() line 1 at RAISE
+S10 filas de auditoría = 1, actor = u-caja
+## Respaldo y restauración (T20 / PT-19 parcial)
+filas (clientes/pedidos/líneas/mensajes/auditoría) origen=1/1/1/2/1 restaurada=1/1/1/2/1
+restauración íntegra: SÍ
+tiempo de restauración del volcado de prueba: 0.08 s (base pequeña, no representa el RTO real)
